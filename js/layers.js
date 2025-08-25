@@ -5321,7 +5321,7 @@ addLayer("l", {
         },
         effect(){
             let x=player[this.layer].buyables[this.id].mul(player.l.power.add(1).log10().add(1));
-            if(hasMilestone("l",18))return x.div(hasMilestone("l",19)?1000:10000).add(1);
+            if(hasMilestone("l",18))return x.div(hasMilestone("l",19)?1000:10000).mul(hasUpgrade("ai",33)?10:1).add(1);
             if(hasMilestone("l",16))return x.add(1).log10().add(1);
             return x.add(1).log10().add(1).log10().div(hasMilestone("l",15)?1:5).add(1);
         },
