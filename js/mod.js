@@ -13,7 +13,7 @@ let modInfo = {
 
 // 版本号和名称
 let VERSION = {
-    num: "28",
+    num: "29",
     name: "人工智能",
 }
 
@@ -91,57 +91,81 @@ function canGenPoints(){
     return true
 }
 
+
 function getPointBase(){
     if(player.h.challenges[11]>=5){
         let s=40/player.h.challenges[11];
-        if(hasMilestone("sp",23))s*=Decimal.pow(0.999,softcap(player.sp.points.add(1).log10().min(800),new Decimal(625),0.5).sub(400)).toNumber();
+        if(hasMilestone("sp",23) && hasUpgrade("sp",45))s*=(650/player.sp.points.add("1e650").log10());
+        else if(hasMilestone("sp",23))s*=Decimal.pow(0.999,softcap(player.sp.points.add(1).log10().min(800),new Decimal(625),0.5).sub(400)).toNumber();
+        if(player.c.unlocked)s*=Decimal.pow(0.99,tmp.c.power[1]).toNumber();
+        if(s!=s)s=8;
         return new Decimal(2).add(s);
     }
     return new Decimal(10);
 }
 
 function getPointSCStart(){
-    if(hasUpgrade("ai",11))return new Decimal(28);
-    return new Decimal(27);
+    let ret=new Decimal(27);
+    if(hasUpgrade("ai",11))ret = ret.add(1);
+    if(hasUpgrade("ai",44))ret = ret.add(0.5);
+    if(player.c.unlocked)ret = ret.add(tmp.c.power[1].div(100));
+    return ret;
 }
 function getPointSC(){
     return 10;
 }
-// 计算点数/秒！
+// Calculate points/sec!
 function getPointGen() {
-    let gain = softcap(getRealPoints().add(getRealPointGen()).log(getPointBase()).log2().div(inChallenge("h",11)?2:1),getPointSCStart(),1/getPointSC()).sub(player.points);
+	let gain = softcap(getRealPoints().add(getRealPointGen()).log(getPointBase()).log2().div(inChallenge("h",11)?2:1),getPointSCStart(),1/getPointSC()).sub(player.points);
     if(inChallenge("h",52))gain = softcap(getRealPoints().add(getRealPointGen()).log(getPointBase()).log2().div(inChallenge("h",11)?2:1).add(1).log2(),getPointSCStart(),1/getPointSC()).sub(player.points);
-    return gain
+	return gain
+}
+
+function getRealPointGenBeforeTaxes() {
+	let gain = new Decimal(0)
+	if(hasUpgrade("p",11))gain=gain.add(player.p.points.mul(10)).add(10);
+	if(hasUpgrade("p",12))gain=gain.mul(upgradeEffect("p",12));
+	if(hasUpgrade("p",13))gain=gain.mul(upgradeEffect("p",13));
+	if(hasUpgrade("p",22))gain=gain.mul(upgradeEffect("p",22));
+	if(hasUpgrade("p",23))gain=gain.mul(upgradeEffect("p",23));
+	gain = gain.mul(layers.b.effect());
+	gain = gain.mul(layers.g.powerEff());
+	gain = gain.mul(layers.t.powerEff());
+	gain = gain.mul(layers.s.buyables[11].effect());
+	if (player.q.unlocked) gain = gain.mul(tmp.q.enEff);
+	if (player.h.unlocked) gain = gain.mul(layers.h.effect());
+    if(hasUpgrade("ss",43))gain = gain.pow(1.01);
+	return gain
 }
 
 function getRealPointGen() {
-    let gain = new Decimal(0)
-    if(hasUpgrade("p",11))gain=gain.add(player.p.points.mul(10)).add(10);
-    if(hasUpgrade("p",12))gain=gain.mul(upgradeEffect("p",12));
-    if(hasUpgrade("p",13))gain=gain.mul(upgradeEffect("p",13));
-    if(hasUpgrade("p",22))gain=gain.mul(upgradeEffect("p",22));
-    if(hasUpgrade("p",23))gain=gain.mul(upgradeEffect("p",23));
-    gain = gain.mul(layers.b.effect());
-    gain = gain.mul(layers.g.powerEff());
-    gain = gain.mul(layers.t.powerEff());
-    gain = gain.mul(layers.s.buyables[11].effect());
-    if (player.q.unlocked) gain = gain.mul(tmp.q.enEff);
-    if (player.h.unlocked) gain = gain.mul(layers.h.effect());
-    if(hasUpgrade("ss",43))gain = gain.pow(1.01);
-    return gain
+	let sc=Decimal.pow(2,Decimal.pow(2,29.1));
+    let gain = getRealPointGenBeforeTaxes();
+    if(gain.lte(sc))return gain;
+    gain = Decimal.pow(2,Decimal.pow(2,Decimal.sub(30,Decimal.pow(0.9,gain.log2().log2().sub(29).mul(10)))));
+	return gain
+}
+
+function getRealPointGenTaxPower() {
+	let sc=Decimal.pow(2,Decimal.pow(2,29.1));
+    let gain = getRealPointGenBeforeTaxes();
+    if(gain.lte(sc))return Decimal.dOne;
+    let gain1 = gain.log2().log2();
+    let gain2 = Decimal.sub(30,Decimal.pow(0.9,gain.log2().log2().sub(29).mul(10)));
+	return Decimal.pow(2,gain1.sub(gain2));
 }
 
 function getRealPoints() {
-    if(inChallenge("h",52))return Decimal.pow(getPointBase(),Decimal.pow(2,Decimal.pow(2,softcap(player.points,getPointSCStart(),getPointSC())).sub(1).mul(inChallenge("h",11)?2:1)));
-    return Decimal.pow(getPointBase(),Decimal.pow(2,softcap(player.points,getPointSCStart(),getPointSC()).mul(inChallenge("h",11)?2:1)));
+    if(inChallenge("h",52))return Decimal.pow(getPointBase(),Decimal.pow(2,Decimal.pow(2,softcap(player.points.max(0),getPointSCStart(),getPointSC())).sub(1).mul(inChallenge("h",11)?2:1)));
+	return Decimal.pow(getPointBase(),Decimal.pow(2,softcap(player.points.max(0),getPointSCStart(),getPointSC()).mul(inChallenge("h",11)?2:1)));
 }
 
 function setRealPoints(s){
-    player.points=s.log(getPointBase()).log2().div(inChallenge("h",11)?2:1);
+	player.points=s.log(getPointBase()).log2().div(inChallenge("h",11)?2:1);
     if(inChallenge("h",52))player.points=player.points.add(1).log2();
     player.points=softcap(player.points,getPointSCStart(),1/getPointSC());
 }
-// 你可以在这里添加与层无关的变量，这些变量应该进入"player"并被保存
+// You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
 }}
 
@@ -151,6 +175,12 @@ var displayThings = [
     "终局: "+VERSION.num+"点",
     function(){return "点数增益: "+format(getRealPointGen())+"倍"},
     function(){return "进度: "+format(player.points.mul(100).div(VERSION.num))+"%"},
+function(){
+    if(getRealPointGen().gte(Decimal.pow(2,Decimal.pow(2,29.1)))) {
+        return "<span style='color:red;'>你的税收让你的点数获取被开了"+format(getRealPointGenTaxPower(),4)+"次方根！</span>";
+    }
+    return "";
+}
 ]
 
 // 决定游戏何时"结束"

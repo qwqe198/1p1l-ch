@@ -219,6 +219,7 @@ addLayer("b", {
     position: 0,
     color: "#6e64c4",
     requires() { 
+if(hasMilestone("c",0))return new Decimal(1);
         if(player.ma.points.gte(2))return new Decimal(2).sub(player.points.sub(20).max(0).div(10).min(1));
         if(player.ma.points.gte(1))return new Decimal(2).sub(player.points.sub(20).max(0).div(20).min(1));
         return new Decimal(2)
@@ -238,6 +239,7 @@ addLayer("b", {
         return 0.5
     },
     base() { 
+            if(hasMilestone("c",0))return 1.2;
         let ret=1.3;
         if(hasUpgrade("b",23))ret-=0.01;
         if(hasMilestone("h",2))ret-=0.02;
@@ -433,6 +435,8 @@ addLayer("g", {
     position: 1,
     color: "#a3d9a5",
     requires() {
+if(hasMilestone("c",0))return new Decimal(1);
+        if(hasMilestone("ai",9))return new Decimal(1);
         let b=3;
         if(hasUpgrade("g",22))b-=0.15;
         if(hasUpgrade("g",32))b-=0.05;
@@ -701,6 +705,7 @@ addLayer("t", {
     position: 0,
     color: "#006609",
     requires() { 
+if(hasMilestone("c",0))return new Decimal(1);
         if(hasMilestone("i",3))return new Decimal(4).sub(player.points.max(23).sub(23).div(2)).max(1);
         return new Decimal(4) 
     },
@@ -779,6 +784,8 @@ addLayer("t", {
         if(hasUpgrade("t",33))ret=player.t.power.plus(1).log10().pow(0.75);
         if(hasUpgrade("t",34))ret=player.t.power.plus(1).log10().pow(0.8);
         if(hasUpgrade("sp",15))ret=player.t.power.plus(1).log10().pow(0.81);
+            if(hasUpgrade("ai",43))ret=player.t.power.plus(1).log10().pow(0.95);
+            if(hasUpgrade("sp",54))ret=player.t.power.plus(1).log10().pow(0.97);
         if(hasUpgrade("t",14))ret = ret.mul(1.28)
         if(hasMilestone("hs",3))ret = ret.mul(1.25)
         if(player.ma.points.gte(4))ret = ret.mul(1.25)
@@ -1016,6 +1023,7 @@ addLayer("s", {
     position: 2,
     color: "#dfdfdf",
     requires() { 
+if(hasMilestone("c",0))return new Decimal(1);
         if(hasMilestone("i",3))return new Decimal(4).sub(player.points.max(23).sub(23).div(2)).max(1);
         if(player.ma.points.gte(5))return new Decimal(4);
         let ret=new Decimal(5);
@@ -1485,6 +1493,11 @@ canBuyMax() { return hasMilestone("q",3) },
             effectDisplay() { return format(tmp.s.upgrades[this.id].effect)+"倍" },
         },
     },
+    
+        canBuyMax() { return hasMilestone("q",2) },
+        autoPrestige() { return hasMilestone("q",6) },
+        resetsNothing() { return hasMilestone("q",6) },
+        
     update(diff){
     var pow=player.g.power.pow(hasUpgrade("sp",42)?(1/0.9):hasUpgrade("p",42)?(1/0.95):1);
     if(player.i.buyables[11].gte(5)){
@@ -1563,6 +1576,7 @@ addLayer("e", {
     }},
     color: "#b82fbd",
     requires() {
+if(hasMilestone("c",0))return new Decimal(1);
         if(player.ma.points.gte(6))return new Decimal(1);
         if(hasMilestone("h",6))return new Decimal(6).min(Decimal.sub(8.5,player.points.div(4)).max(1));
         return new Decimal(6)
@@ -1774,6 +1788,7 @@ addLayer("sb", {
     row: 2,
     color: "#504899",
     requires() {
+if(hasMilestone("c",0))return new Decimal(1);
         if(hasMilestone("sp",20))return new Decimal(10).sub(player.sp.points.add(10).log10().sub(200).max(0).div(10)).max(1);
         if(player.ma.points.gte(7))return new Decimal(12); 
         return new Decimal(24)
@@ -1828,6 +1843,7 @@ addLayer("sg", {
     row: 2,
     color: "#248239",
     requires(){
+if(hasMilestone("c",0))return new Decimal(1);
         if(hasMilestone("sp",20))return new Decimal(10).sub(player.sp.points.add(10).log10().sub(200).max(0).div(10)).max(1);
         if(player.ma.points.gte(11))return new Decimal(12); 
         if(hasUpgrade("ss",21))return new Decimal(24);
@@ -1892,7 +1908,7 @@ addLayer("q", {
         pseudoUpgs: [],
     }},
     color: "#c20282",
-    requires(){return new Decimal(hasMilestone("m",4)?1:1e40)},
+    requires(){  if(hasMilestone("c",0))return new Decimal(1);return new Decimal(hasMilestone("m",4)?1:1e40)},
     resource: "特性",
     baseResource: "生成器能量",
     baseAmount() {return player.g.power},
@@ -2289,8 +2305,11 @@ addLayer("h", {
     ],
     layerShown(){return player.q.unlocked},
     doReset(resettingLayer){ 
-        let keep = ["milestones", "challenges"];
-        if (layers[resettingLayer].row > this.row) layerDataReset(this.layer, keep)
+            let keep = ["milestones"];
+            keep.push("challenges");
+            if (layers[resettingLayer].row > this.row) {
+                layerDataReset(this.layer, keep)
+            }
     },
     effect() { 
         if(!player.h.unlocked)return new Decimal(1);
@@ -2557,6 +2576,12 @@ addLayer("h", {
             done() { return player.h.challenges[11]>=13},
             effectDescription: "生成器更便宜",
         },
+ 50: {
+                requirementDescription: "在第十个挑战中获得3.475点",
+                unlocked(){return player.ma.points.gte(9)},
+                done() { return player.h.challenges[52]>=3.475},
+                effectDescription: "<b>反永恒</b>效果更好",
+            },
     },
     getHCBoost(){
         if(inChallenge("ne",11))return new Decimal(0);
@@ -2651,7 +2676,8 @@ addLayer("h", {
                     if(player.r.unlocked)mxtime=80000;
                     if(player.id.unlocked)mxtime=85000;
                     if(player.ai.unlocked)mxtime=92500;
-                    ret=ret.mul(Math.min(player.timePlayed,mxtime)/(hasMilestone("h",46)?3000:hasMilestone("h",45)?7000:hasMilestone("h",43)?10000:hasMilestone("h",42)?20000:hasMilestone("h",32)?50000:100000)+1);
+                        if(player.c.unlocked)mxtime=100000;
+                        ret=ret.mul(Math.min(player.timePlayed,mxtime)/(hasMilestone("h",50)?100:("h",46)?3000:hasMilestone("h",45)?7000:hasMilestone("h",43)?10000:hasMilestone("h",42)?20000:hasMilestone("h",32)?50000:100000)+1);
                 }
                 if(hasMilestone("h",39) || player.ma.points.gte(9))ret = ret.mul(layers.h.getHCBoost());
                 if(hasUpgrade("t",23))ret=ret.add(1);
@@ -2778,7 +2804,7 @@ addLayer("h", {
         }
     },
     tabFormat: {
-        "主标签": {
+            "Main Tab": {
             content: [
                 "main-display",
                 ["display-text",function(){
@@ -2789,7 +2815,7 @@ addLayer("h", {
                 "blank",
                 "challenges"]
         },
-        "里程碑": {
+            "Milestones": {
             content: [
                 "main-display",
                 "prestige-button",
@@ -2814,6 +2840,7 @@ addLayer("ss", {
     }},
     color: "#e8ffff",
     requires() { 
+if(hasMilestone("c",0))return new Decimal(1);
         if(hasMilestone("ne",5))return new Decimal(1);
         if(player.ne.unlocked)return new Decimal(1).add(Decimal.pow(0.9,player.ne.thoughts).mul(7));
         if(player.ma.points.gte(10))return new Decimal(10);
@@ -2858,6 +2885,8 @@ addLayer("ss", {
         if(hasMilestone("i",2))base = base.mul(player.i.points.div(10).add(1));
         if(hasMilestone("ne",1))base = base.mul(tmp.ne.thoughtEff2);
         if(hasUpgrade("t",35))base = base.mul(1.2);
+            if(player.i.points.gte(33))base = base.mul(Decimal.pow(1.2,player.i.points.pow(1.1)));
+            if (hasUpgrade("sp",53)) base = base.mul(upgradeEffect("sp", 53));
         return base;
     },
     effect() { 
@@ -3057,6 +3086,7 @@ addLayer("o", {
         "prestige-button"() {return { "background": (canReset("o"))?("radial-gradient(#ffcd00, #ff4300)"):"#bf8f8f" }},
     },
     requires() { 
+if(hasMilestone("c",0))return new Decimal(1);
         let req = new Decimal(20);
         if(player.ma.points.gte(12))req=req.sub(player.o.points.add(10).log10().sqrt().min(19));
         return req;
@@ -3099,7 +3129,7 @@ addLayer("o", {
         return player.o.points;
     },
     solEnGain() { 
-        let gain = player.t.power.max(1).pow(tmp.o.effect);
+            let gain = player.t.power.min("e1180000").max(1).pow(tmp.o.effect);
         if(gain.gte("1e50"))gain = Decimal.pow(10,gain.log10().mul(50).sqrt());
         gain = gain.mul(tmp.o.effect2);
         if(player.m.unlocked)gain = gain.mul(tmp.m.hexEff);
@@ -3268,6 +3298,9 @@ addLayer("o", {
             buy() {
                 player.o.buyables[11] = new Decimal(0);
                 player.o.buyables[this.id] = player.o.buyables[this.id].plus(tmp[this.layer].buyables[this.id].gain);
+				},
+				 buyMax() {
+					// I'll do this later ehehe
             },
             style: {'height':'140px', 'width':'140px', 'font-size':'9px'},
         },
@@ -3459,7 +3492,7 @@ addLayer("ba", {
         return eff;
     },
     tabFormat: {
-        "主标签": {
+            "Main Tab": {
             content: ["main-display",
         "prestige-button",
         "resource-display",
@@ -3474,7 +3507,7 @@ addLayer("ba", {
         "blank",
         "upgrades"]
         },
-        "里程碑": {
+            "Milestones": {
             content: [
                 "main-display",
                 "prestige-button",
@@ -3849,7 +3882,7 @@ addLayer("m", {
     layerShown(){return player.ba.unlocked },
     branches: ["o","h","q"],
     tabFormat: {
-        "主标签": {
+            "Main Tab": {
             content: ["main-display",
         "prestige-button",
         "resource-display",
@@ -3860,7 +3893,7 @@ addLayer("m", {
                 {}],
         ]
         },
-        "里程碑": {
+            "Milestones": {
             content: [
                 "main-display",
                 "prestige-button",
@@ -4210,7 +4243,7 @@ addLayer("ps", {
         powerExp() { return player.ps.points.sqrt().plus(1).times(tmp.ps.buyables[21].effect) },
         powerEff() { return player.ps.power.sqrt().plus(1); },
         tabFormat: {
-            "主标签": {
+            "Main Tab": {
                 content: ["main-display",
                     ["display-text", function() { 
             if(player.l.unlocked)return "你的幻影灵魂将生命能量获取乘"+format(tmp.ps.effect)+"倍";return ""; }],
@@ -4225,7 +4258,7 @@ addLayer("ps", {
                     "buyables",
                 ],
             },
-            "里程碑": {
+            "Milestones": {
                 content: ["main-display",
                     "prestige-button",
                     "resource-display",
@@ -4319,6 +4352,7 @@ addLayer("sp", {
     },
     color: "#00a7bf",
         requires() { 
+        if(hasMilestone("c",0))return new Decimal(1);
             if(player.ma.points.gte(16))return new Decimal(16).sub(player.points.max(24).sub(24).mul(5)).max(1);
             return new Decimal(16) 
         },
@@ -4362,7 +4396,7 @@ addLayer("sp", {
         update(diff) {
         },
         tabFormat: {
-            "主标签": {
+            "Main Tab": {
                 content: ["main-display",
                     "prestige-button",
                     "resource-display",
@@ -4373,7 +4407,7 @@ addLayer("sp", {
                     }
                 ],
             },
-            "里程碑": {
+            "Milestones": {
                 unlocked(){return player.i.unlocked;},
                 content: ["main-display",
                     "prestige-button",
@@ -4517,8 +4551,14 @@ addLayer("sp", {
                 requirementDescription: "1e445超级点数",
                 unlocked() { return player.id.unlocked },
                 done() { return player.sp.best.gte("1e445") && player.id.unlocked},
-                effectDescription: "点数缩放基于超级点数更弱",
+                effectDescription: "Point scaling is weaker based on super points.",
             },
+            24: {
+    requirementDescription: "1e1000超级点数",
+    unlocked() { return player.c.unlocked },
+    done() { return player.sp.best.gte("1e1000") && player.c.unlocked},
+    effectDescription: "生命助推器3和6效果增强",
+},
         },
         upgrades: {
             rows: 5,
@@ -4651,6 +4691,38 @@ addLayer("sp", {
                 cost() { return new Decimal(1e205) },
                 unlocked() { return player.ma.points.gte(16) && hasUpgrade("p", 44) },
             },
+	45: {
+    title: "重:缩放", 
+    description: "1e445超级点数里程碑效果增强",
+    cost() { return new Decimal("1e900") },
+    unlocked() { return player.ai.unlocked },
+},
+51: {
+    title: "超级机器人",
+    description: "部分机器人可购买项效果增强",
+    cost() { return new Decimal("1e1630") },
+    unlocked() { return player.c.unlocked },
+},
+52: {
+    title: "超级机器", 
+    description: "CPU和南桥效果增强",
+    cost() { return new Decimal("1e2045") },
+    unlocked() { return player.c.unlocked },
+},
+53: {
+    title: "超级子空间",
+    description: "子空间基础值会根据总超级点数提升",
+    cost() { return new Decimal("1e2660") },
+    unlocked() { return player.c.unlocked },
+    effect() { return player.sp.total.plus(1).log10().plus(1) },
+    effectDisplay() { return format(tmp.sp.upgrades[53].effect)+"倍" },
+},
+54: {
+    title: "超级时间",
+    description: "第二时间能量效果增强", 
+    cost() { return new Decimal("1e3040") },
+    unlocked() { return player.c.unlocked },
+},
         },
 
         passiveGeneration() { return (player.ma.points.gte(10)?1:0) },
@@ -4672,6 +4744,9 @@ passiveGeneration() { return (player.ma.points.gte(5)?1:0) },
     roundUpCost: true,
     color: "#dfdfff",
     requires() { 
+
+        if(hasMilestone("c",0))return new Decimal(1);
+        if(hasUpgrade("ai",34))return new Decimal(1);
         if(player.ma.points.gte(17))return new Decimal(160).sub(player.points.max(25).sub(25).mul(50)).max(1);
         if(hasMilestone("sp",15))return new Decimal(200); 
         if(hasMilestone("sp",12))return new Decimal(240); 
@@ -4894,7 +4969,26 @@ passiveGeneration() { return (player.ma.points.gte(5)?1:0) },
             "效果: 空间建筑9的效果x"+format(data.effect)+"<br>";
         },
         unlocked() { return player[this.layer].buyables[1].gte(256) }, 
-        canAfford() { return false },
+                canAfford() {
+                    return false;
+                },
+                effect(){
+                    let x=player[this.layer].buyables[this.id];
+                    return x.mul(0.2).add(1);
+                },
+                style: {'height':'120px','width':'120px','background-color':'#dfdfff'},
+            },
+            25: {
+                display() { 
+                    let data = tmp[this.layer].buyables[this.id]
+   return "超建筑10<br>"+
+            "等级: "+formatWhole(player[this.layer].buyables[this.id])+"<br>"+
+            "效果: 空间建筑10的效果x"+format(data.effect)+"<br>";
+                },
+                unlocked() { return player[this.layer].buyables[1].gte(512) }, 
+                canAfford() {
+                    return false;
+                },
         effect(){
             let x=player[this.layer].buyables[this.id];
             return x.mul(0.2).add(1);
@@ -4924,6 +5018,8 @@ passiveGeneration() { return (player.ma.points.gte(5)?1:0) },
             effectDescription: "时间能量效果^1.25",
         },
     },
+
+        
     update(diff) {
         if(hasMilestone("mc",1)){
             var target=player.hs.points.pow(buyableEffect("o",33)).add(1).log(hasUpgrade("t",32)?1.8:2).pow(1/1.5).add(1).floor();
@@ -4941,6 +5037,7 @@ passiveGeneration() { return (player.ma.points.gte(5)?1:0) },
         player.hs.buyables[22]=player.hs.buyables[1].add(64).div(128).floor();
         player.hs.buyables[23]=player.hs.buyables[1].add(128).div(256).floor();
         player.hs.buyables[24]=player.hs.buyables[1].add(256).div(512).floor();
+            player.hs.buyables[25]=player.hs.buyables[1].div(512).floor();
     },
     marked: function(){return player.ma.points.gte(17)}
 });
@@ -4958,7 +5055,8 @@ addLayer("l", {
         total: new Decimal(0),
     }},
     color: "#7fbf7f",
-    requires() {
+    requires: function(){
+        if(hasMilestone("c",0))return new Decimal(1);
         if(player.ma.points.gte(18))return new Decimal(1);
         return new Decimal(1e28);
     },
@@ -4970,6 +5068,7 @@ addLayer("l", {
     hotkeys: [
         {key: "l", description: "L: 重置获取生命精华", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
+ passiveGeneration() { return (hasMilestone("ge",1)?1:0) },
     layerShown(){return player.hs.unlocked},
     branches: ["o","m",["ps",3]],
     gainMult() {
@@ -5099,6 +5198,16 @@ addLayer("l", {
             done() {return player[this.layer].best.gte("1e630")},
             effectDescription: "生命助推器3和6效果更好。",
         },
+20: {
+    requirementDescription: "1e900生命精华", 
+    done() {return player[this.layer].best.gte("1e900")},
+    effectDescription: "生命助推器3和6效果增强",
+},
+21: {
+    requirementDescription: "1e1500生命精华",
+    done() {return player[this.layer].best.gte("1e1500")},
+    effectDescription: "生命能量效果提升至6次方",
+},
     },
     update(diff){
         player.l.power = player.l.power.add(tmp.l.effect.times(diff)).max(0)
@@ -5147,6 +5256,7 @@ addLayer("l", {
     ],
     lifePowerEff(){
         let ret=player.l.power.add(1).sqrt();
+        if(hasMilestone("l",21))ret = ret.pow(6);
         return ret;
     },
    buyables: {
@@ -5305,6 +5415,8 @@ addLayer("i", {
         if(player.ma.points.gte(19))return new Decimal(1); 
         return new Decimal("1e110") 
     },
+ autoPrestige() { return hasMilestone("ma",0) },
+    resetsNothing() { return hasMilestone("ma",0) },
     resource: "帝国砖块",
     baseResource: "子空间",
     baseAmount() {return player.ss.subspace},
@@ -5405,6 +5517,12 @@ addLayer("i", {
             done() {return player[this.layer].best.gte(21) && player.r.unlocked},
             effectDescription: "时间胶囊和空间能量更便宜。",
         },
+     12: {
+    requirementDescription: "33块帝国砖块",
+    unlocked(){return player.c.unlocked},
+    done() {return player[this.layer].best.gte(33) && player.c.unlocked},
+    effectDescription: "帝国砖块会增强子空间获取效率",
+},
     },
     buyables: {
         rows: 1,
@@ -5633,6 +5751,27 @@ addLayer("ma", {
             done() {return player[this.layer].best.gte(24)},
             effectDescription(){ return layers.ma.getMilestoneDesc()+"<br>精通能量: 能量需求降为1，心智瓦特获取更好，以100%速率获取所有4种瓦特类型，精通里程碑提升能量。"},
         },
+24: {
+    requirementDescription: "25精通",
+    done() {return player[this.layer].best.gte(25)},
+    effectDescription(){ 
+        return layers.ma.getMilestoneDesc()+"<br>精通机器人：精通里程碑增强机器人效果，部分机器人可购买项效果提升"
+    },
+},
+25: {
+    requirementDescription: "26精通", 
+    done() {return player[this.layer].best.gte(26)},
+    effectDescription(){ 
+        return layers.ma.getMilestoneDesc()+"<br>精通灵感：灵感效果达到最大值"
+    },
+},
+26: {
+    requirementDescription: "27精通",
+    done() {return player[this.layer].best.gte(27)},
+    effectDescription(){ 
+        return layers.ma.getMilestoneDesc()+"<br>精通AI：精通里程碑增强超级智能和人工意识效果，每秒获得100%超级智能获取量"
+    },
+},
     },
     marked: function(){return player.ma.points.gte(20)}
 });
@@ -5686,6 +5825,8 @@ addLayer("ge", {
         ret = ret.mul(buyableEffect("r",13));
         if(player.ma.points.gte(21))ret = ret.mul(buyableEffect("m",13));
         if(hasUpgrade("ai",22))ret = ret.mul(tmp.id.revEff);
+        
+			if (player.c.unlocked && tmp.c)ret = ret.mul(tmp.c.eff4);
         return ret;
     },
     effectDescription() {
@@ -5875,6 +6016,8 @@ addLayer("mc", {
         ret = ret.mul(tmp.id.revEff);
         ret = ret.mul(buyableEffect("r",31));
         if(hasMilestone("ai",4))ret = ret.mul(buyableEffect("m",23));
+        
+			if (player.c.unlocked && tmp.c)ret = ret.mul(tmp.c.eff4);
         return ret;
     },
     effectDescription() {
@@ -5959,7 +6102,7 @@ addLayer("mc", {
             player.mc.buyables[32]=player.mc.buyables[32].add(player.mc.mechEn.mul(diff));
         }
     },
-    tabFormat: {"主标签页":{"content":["main-display",
+	 tabFormat: {"Main Tab":{"content":["main-display",
         "prestige-button", "resource-display",
         ["blank", "5px"],
         ["display-text",
@@ -5972,7 +6115,7 @@ addLayer("mc", {
             "upgrades",
             "milestones",
     ]},
-    "主板":{"content":["main-display",
+     "The Motherboard":{"content":["main-display",
         "prestige-button", "resource-display",
         ["blank", "5px"],
         ["display-text",
@@ -6231,6 +6374,7 @@ addLayer("ne", {
     },
     signalLimThresholdDiv() {
         let div = new Decimal(1);
+			if (player.c.unlocked && tmp.c) div = div.times(tmp.c.eff2);
         return div;
     },
     signalLim() { return Decimal.pow(layers[this.layer].signalLimThresholdInc(), player.ne.thoughts).times(100).div(layers[this.layer].signalLimThresholdDiv()) },
@@ -6296,7 +6440,9 @@ addLayer("ne", {
                 return b.floor().max(0);
             },
             power() {
-                return new Decimal(1);
+                    let p = new Decimal(1);
+					if (player.c.unlocked && tmp.c) p = p.times(tmp.c.eff5);
+					return p;
             },
             effect() { return player[this.layer].buyables[this.id].times(tmp.ne.buyables[11].power).div(3).plus(1) },
             display() {
@@ -6381,6 +6527,7 @@ addLayer("en", {
     baseResource: "太阳能量",
     baseAmount() { return player.o.points },
     requires() { 
+        if(hasMilestone("c",0))return new Decimal(1);
         if(player.ma.points.gte(24))return new Decimal(1);
         if (hasMilestone("r", 3))return Decimal.pow("1e162",Decimal.pow(0.95,player.r.total.add(1).log10()));
         return new Decimal("1e162")
@@ -6437,7 +6584,7 @@ addLayer("en", {
             player.en.points = player.en.points.times(Decimal.pow(0.75, diff)).sub(diff).max(0);
             if (hasMilestone("en", 1)) player.en.stored = player.en.stored.plus(subbed.div(5));
         }
-        let sw_mw_exp = 1
+			let sw_mw_exp = hasUpgrade("ai", 42)?0.6:1
         if (hasMilestone("r", 2) || player.ma.points.gte(24)) {
             if (hasMilestone("r", 3))subbed = subbed.times(buyableEffect("r",11).max(1));
             player.en.tw = player.en.tw.pow(1.5).plus(subbed.div((player.en.target==1 || player.ma.points.gte(24))?1:3)).root(1.5);
@@ -6461,7 +6608,7 @@ addLayer("en", {
         }
     },
     storageLimit() { return player.en.total.div(2) },
-    twEff() { return player.en.tw.plus(1).log10().plus(1).log10().plus(1) },
+		twEff() { if(hasUpgrade("ai", 42))return player.en.tw.plus(1).log10().plus(1); return player.en.tw.plus(1).log10().plus(1).log10().plus(1) },
     owEff() { return player.en.ow.plus(1).log10().plus(1).log10().plus(1).log10().plus(1) },
     swEff() { return player.en.sw.plus(1).log10().plus(1).log10().div(10).plus(1) },
     mwEff() { return hasMilestone("en", 3)?player.en.mw.plus(1).log10().plus(1).log10().plus(1).pow(3):new Decimal(1) },
@@ -6548,8 +6695,8 @@ addLayer("en", {
 
 
 addLayer("r", {
-    name: "机器人",
-    symbol: "R",
+    name: "机器人", // 中文层名称
+    symbol: "R", // 保持原符号不变
     position: 0,
     startData() { return {
         unlocked: false,
@@ -6559,21 +6706,23 @@ addLayer("r", {
     }},
     color: "#00ccff",
     requires(){
+        if(hasMilestone("c",0))return new Decimal(1);
         if(hasMilestone("i",9))return new Decimal(1);
         return Decimal.pow(3e12,Decimal.pow(0.001,player.points.sub(25)));
     },
-    resource: "机器人",
-    baseResource: "总能量",
+    resource: "机器人", // 中文资源名称
+    baseResource: "总能量", // 中文基础资源名称
     baseAmount() {return player.en.total},
     type: "normal",
     exponent: 0.1,
     gainMult() {
         mult = new Decimal(1);
         if(hasMilestone("r",4))mult = mult.mul(buyableEffect("m",32));
-        if(hasMilestone("i",8))mult = mult.times(player.i.points.add(1));
-        if(hasMilestone("l",17))mult = mult.times(buyableEffect("l",16));
+        if (hasMilestone("i", 8)) mult = mult.times(player.i.points.add(1));
+        if(hasMilestone("l",17))mult = mult.times(buyableEffect("l", 16));
         mult = mult.mul(buyableEffect("r",33));
         mult = mult.mul(tmp.ai.conscEff1);
+        if(player.ma.points.gte(25))mult = mult.mul(Decimal.pow(tmp.ma.milestoneBase,player.ma.points));
         return mult;
     },
     gainExp() {
@@ -6581,7 +6730,7 @@ addLayer("r", {
     },
     row: 5,
     hotkeys: [
-        {key: "r", description: "R: 重置获取机器人", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "R", description: "R: 重置机器人", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     doReset(resettingLayer){ 
         let keep = ["milestones"];
@@ -6590,15 +6739,15 @@ addLayer("r", {
     layerShown(){return player.en.unlocked },
     branches: ["en"],
     tabFormat: {
-        "主标签页": {
+            "Main Tab": {
             content: ["main-display",
-            "prestige-button",
-            "resource-display",
-            "blank",
-            "buyables",
-            ]
+        "prestige-button",
+        "resource-display",
+        "blank",
+        "buyables",
+        ]
         },
-        "里程碑": {
+            "Milestones": {
             content: [
                 "main-display",
                 "prestige-button",
@@ -6611,7 +6760,7 @@ addLayer("r", {
         0: {
             requirementDescription: "1总机器人",
             done() { return player.r.total.gte(1)},
-            effectDescription: "每秒获得100%的齿轮获取",
+            effectDescription: "每秒获得100%的齿轮获取量",
         },
         1: {
             requirementDescription: "2总机器人",
@@ -6626,7 +6775,7 @@ addLayer("r", {
         3: {
             requirementDescription: "100总机器人",
             done() { return player.r.total.gte(100)},
-            effectDescription: "能量机器人提升瓦特获取，能量需求基于总机器人降低",
+            effectDescription: "能量机器人提升瓦特获取，能量需求基于总机器人减少",
         },
         4: {
             requirementDescription: "300总机器人",
@@ -6656,17 +6805,17 @@ addLayer("r", {
         9: {
             requirementDescription: "2e6总机器人",
             done() { return player.r.total.gte(2e6)},
-            effectDescription: "太阳机器人效果更好",
+            effectDescription: "太阳机器人效果增强",
         },
         10: {
             requirementDescription: "5e6总机器人",
             done() { return player.r.total.gte(5e6)},
-            effectDescription: "超级机器人效果更好",
+            effectDescription: "超级机器人效果增强",
         },
         11: {
             requirementDescription: "1e8总机器人",
             done() { return player.r.total.gte(1e8)},
-            effectDescription: "能量机器人效果更好",
+            effectDescription: "能量机器人效果增强",
         },
         12: {
             requirementDescription: "1e12总机器人",
@@ -6686,32 +6835,32 @@ addLayer("r", {
         15: {
             requirementDescription: "3e15总机器人",
             done() { return player.r.total.gte(3e15)},
-            effectDescription: "能量机器人效果更好",
+            effectDescription: "能量机器人效果增强",
         },
         16: {
             requirementDescription: "2e16总机器人",
             done() { return player.r.total.gte(2e16)},
-            effectDescription: "齿轮机器人效果更好",
+            effectDescription: "齿轮机器人效果增强",
         },
         17: {
             requirementDescription: "5e16总机器人",
             done() { return player.r.total.gte(5e16)},
-            effectDescription: "每秒获得100%的机器人获取",
+            effectDescription: "每秒获得100%的机器人获取量",
         },
         18: {
             requirementDescription: "5e17总机器人",
             done() { return player.r.total.gte(5e17)},
-            effectDescription: "机械机器人效果更好",
+            effectDescription: "机械机器人效果增强",
         },
         19: {
             requirementDescription: "2e18总机器人",
             done() { return player.r.total.gte(2e18)},
-            effectDescription: "超空间机器人效果更好",
+            effectDescription: "超空间机器人效果增强",
         },
         20: {
             requirementDescription: "8e18总机器人",
             done() { return player.r.total.gte(8e18)},
-            effectDescription: "元机器人效果更好",
+            effectDescription: "元机器人效果增强",
         },
         21: {
             requirementDescription: "1e20总机器人",
@@ -6721,7 +6870,7 @@ addLayer("r", {
         22: {
             requirementDescription: "1e36总机器人",
             done() { return player.r.total.gte(1e36)},
-            effectDescription: "心智机器人效果更好",
+            effectDescription: "心智机器人效果增强",
         },
     },
     buyables: {
@@ -6729,186 +6878,197 @@ addLayer("r", {
         cols: 3,
         11: {
             title: "能量机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",15))return player.r.buyables[11].pow(0.25).add(1);
-                let eff = player.r.buyables[11].mul(100).add(1).log10().add(1);
+                if(hasUpgrade("sp",51))return player[this.layer].buyables[this.id].add(1);
+                if(hasMilestone("r",15))return player[this.layer].buyables[this.id].pow(0.25).add(1);
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 if(hasMilestone("r",11))eff = eff.pow(2);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[11]
-                return "数量: " + formatWhole(player.r.buyables[11])+"\n"+
-                "效果: 将能量获取乘"+format(data.effect)+"倍，被动能量获取乘"+format(data.effect.min(10))+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 能量机器人\n效果: 将能量获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍，被动能量获取乘以"+format(tmp[this.layer].buyables[this.id].effect.min(10))+"倍"))
+                return display;
             },
-            unlocked() { return player.r.unlocked }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return player[this.layer].unlocked }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[11] = player.r.buyables[11].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         12: {
             title: "心智机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",22))return Decimal.pow(10,player.r.buyables[12].add(1).log10().root(3));
-                let eff = player.r.buyables[12].mul(100).add(1).log10().add(1);
+                if(hasUpgrade("sp",51))return player[this.layer].buyables[this.id].add(1);
+                if(player.ma.points.gte(25))return Decimal.pow(10,player[this.layer].buyables[this.id].add(1).log10().sqrt());
+                if(hasMilestone("r",22))return Decimal.pow(10,player[this.layer].buyables[this.id].add(1).log10().root(3));
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[12]
-                return "数量: " + formatWhole(player.r.buyables[12])+"\n"+
-                "效果: 将信号获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 心智机器人\n效果: 将信号获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",1) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,1) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[12] = player.r.buyables[12].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         13: {
             title: "齿轮机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",15))return Decimal.pow(10,player.r.buyables[13].add(1).log10().sqrt());
-                let eff = player.r.buyables[13].mul(100).add(1).log10().add(1);
+                if(hasUpgrade("sp",51))return player[this.layer].buyables[this.id].add(1);
+                if(hasMilestone("r",15))return Decimal.pow(10,player[this.layer].buyables[this.id].add(1).log10().sqrt());
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[13]
-                return "数量: " + formatWhole(player.r.buyables[13])+"\n"+
-                "效果: 将齿轮和旋转获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 齿轮机器人\n效果: 将齿轮和旋转获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",5) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,5) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[13] = player.r.buyables[13].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         21: {
             title: "太阳机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",9))return player.r.buyables[21].add(1).pow(1.5);
-                let eff = player.r.buyables[21].mul(100).add(1).log10().add(1);
+                if(hasUpgrade("sp",51))return player[this.layer].buyables[this.id].add(1).pow(2);
+                if(hasMilestone("r",9))return player[this.layer].buyables[this.id].add(1).pow(1.5);
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[21]
-                return "数量: " + formatWhole(player.r.buyables[21])+"\n"+
-                "效果: 将太阳能量和太阳能量获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 太阳机器人\n效果: 将太阳能量和太阳能量获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",6) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,6) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[21] = player.r.buyables[21].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         22: {
             title: "超级机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",10))return player.r.buyables[22].mul(2).add(1);
-                let eff = player.r.buyables[22].mul(100).add(1).log10().add(1);
+                if(hasUpgrade("sp",51))return player[this.layer].buyables[this.id].add(1).pow(2);
+                if(player.ma.points.gte(25))return player[this.layer].buyables[this.id].pow(1.1).add(1);
+                if(hasMilestone("r",10))return player[this.layer].buyables[this.id].mul(2).add(1);
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[22]
-                return "数量: " + formatWhole(player.r.buyables[22])+"\n"+
-                "效果: 将超级点数获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 超级机器人\n效果: 将超级点数获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",7) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,7) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[22] = player.r.buyables[22].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         23: {
             title: "超空间机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",19))return Decimal.pow(10,player.r.buyables[23].add(1).log10().sqrt());
-                let eff = player.r.buyables[23].mul(100).add(1).log10().add(1);
+                if(player.ma.points.gte(25))return player[this.layer].buyables[this.id].pow(1.1).add(1);
+                if(hasMilestone("r",19))return Decimal.pow(10,player[this.layer].buyables[this.id].add(1).log10().sqrt());
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[23]
-                return "数量: " + formatWhole(player.r.buyables[23])+"\n"+
-                "效果: 将超空间能量获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 超空间机器人\n效果: 将超空间能量获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",8) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,8) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[23] = player.r.buyables[23].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         31: {
             title: "机械机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                if(hasMilestone("r",18))return Decimal.pow(10,player.r.buyables[31].add(1).log10().sqrt());
-                let eff = player.r.buyables[31].mul(100).add(1).log10().add(1);
+                if(hasUpgrade("sp",51))return player[this.layer].buyables[this.id].add(1);
+                if(hasMilestone("r",18))return Decimal.pow(10,player[this.layer].buyables[this.id].add(1).log10().sqrt());
+                let eff = player[this.layer].buyables[this.id].mul(100).add(1).log10().add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[31]
-                return "数量: " + formatWhole(player.r.buyables[31])+"\n"+
-                "效果: 将机器能量和机械能量获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 机械机器人\n效果: 将机器能量和机械能量获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",12) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,12) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[31] = player.r.buyables[31].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         32: {
             title: "生命机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                let eff = player.r.buyables[32].mul(10).add(1);
+                if(player.ma.points.gte(25))return player[this.layer].buyables[this.id].pow(1.1).add(1);
+                let eff = player[this.layer].buyables[this.id].mul(10).add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[32]
-                return "数量: " + formatWhole(player.r.buyables[32])+"\n"+
-                "效果: 将生命精华和生命能量获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 生命机器人\n效果: 将生命精华和生命能量获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",13) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,13) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[32] = player.r.buyables[32].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
         33: {
             title: "元机器人",
-            gain() { return player.r.points },
+            gain() { return player[this.layer].points },
             effect() { 
-                let eff = player.r.buyables[33].pow(hasMilestone("r",20)?0.2:0.1).add(1);
+                let eff = player[this.layer].buyables[this.id].pow(hasMilestone("r",20)?0.2:0.1).add(1);
                 return eff;
             },
             display() {
-                let data = tmp.r.buyables[33]
-                return "数量: " + formatWhole(player.r.buyables[33])+"\n"+
-                "效果: 将机器人获取乘"+format(data.effect)+"倍";
+                let data = tmp[this.layer].buyables[this.id]
+                let display = ("你有 " + formatWhole(player[this.layer].buyables[this.id])+(" 元机器人\n效果: 将机器人获取乘以"+format(tmp[this.layer].buyables[this.id].effect)+"倍"));
+                return display;
             },
-            unlocked() { return hasMilestone("r",14) }, 
-            canAfford() { return player.r.points.gt(0) },
+            unlocked() { return hasMilestone(this.layer,14) }, 
+            canAfford() { return player[this.layer].points.gt(0) },
             buy() { 
-                player.r.buyables[33] = player.r.buyables[33].plus(player.r.points);
-                player.r.points = new Decimal(0);
+                player[this.layer].buyables[this.id] = player[this.layer].buyables[this.id].plus(player[this.layer].points);
+                player[this.layer].points = new Decimal(0);
             },
         },
     },
-    passiveGeneration() { return (hasMilestone("r",17)?1:0) },
-    update(diff){
+    passiveGeneration() { return (hasMilestone("r", 17)?1:0) },
+    update(diff) {
+        if (!player.r.unlocked) return; 
         if(hasMilestone("r",21)){
             player.r.buyables[11]=player.r.buyables[11].add(player.r.points.times(diff));
             player.r.buyables[12]=player.r.buyables[12].add(player.r.points.times(diff));
@@ -6920,9 +7080,9 @@ addLayer("r", {
             player.r.buyables[32]=player.r.buyables[32].add(player.r.points.times(diff));
             player.r.buyables[33]=player.r.buyables[33].add(player.r.points.times(diff));
         }
-    }
+    },
+    marked: function(){return player.ma.points.gte(25)}
 });
-
 addLayer("id", {
     name: "灵感",
     symbol: "ID",
@@ -6958,7 +7118,8 @@ addLayer("id", {
         }
         if (layers[resettingLayer].row > this.row) layerDataReset(this.layer, keep)
     },
-    effect() { return Decimal.sub(0.95, Decimal.div(0.95, player.id.points.plus(1).log10().times(hasMilestone("id",4)?1.5:1).times(hasMilestone("id",5)?1.75:1).plus(1))) },
+effect() { if(player.ma.points.gte(26))return new Decimal(0.95);
+        return Decimal.sub(0.95, Decimal.div(0.95, player.id.points.plus(1).log10().times(hasMilestone("id", 4)?1.5:1).times(hasMilestone("id", 5)?1.75:1).plus(1))) },
     effectDescription() { return "将思考需求的增长减少<h2 style='color: #fad682; text-shadow: #fad682 0px 0px 10px;'>"+format(tmp.id.effect)+"</h2>" },
     rev() { return player.ne.signals.plus(1).log10().div(10).pow(.75).times(player.id.points).pow(hasMilestone("id",0)?2:1).times(hasUpgrade("ai",32)?1.5:1).floor() },
     revEff() { return tmp.id.rev.add(1).pow(hasUpgrade("ai",32)?upgradeEffect("ai",32):1); },
@@ -7006,11 +7167,12 @@ addLayer("id", {
     canBuyMax() { return hasMilestone("ai",0) },
     autoPrestige() { return hasMilestone("ai",0) },
     resetsNothing() { return hasMilestone("ai",0) },
+        marked: function(){return player.ma.points.gte(26)}
 });
 
 addLayer("ai", {
-    name: "人工智能",
-    symbol: "AI",
+    name: "人工智能", // 中文层名称
+    symbol: "AI", // 保持原符号不变
     position: 0,
     startData() { return {
         unlocked: false,
@@ -7030,17 +7192,20 @@ addLayer("ai", {
         },
     },
     requires(){
+        if(hasMilestone("c",0))return new Decimal(1);
         if(player.points.gte(27.1))return Decimal.pow(800,Decimal.sub(28.1,player.points)).max(1);
         return new Decimal(800);
     },
-    resource: "超级智能",
-    baseResource: "启示",
+    resource: "超级智能", // 中文资源名称
+    baseResource: "启示", // 中文基础资源名称
     baseAmount() {return tmp.id.rev},
     type: "normal",
     exponent: new Decimal(3),
     roundUpCost: true,
     gainMult() {
         mult = new Decimal(1);
+        if(hasMilestone("ai",6))mult = mult.mul(Decimal.pow(2,player.c.points));
+        if(player.ma.points.gte(27))mult = mult.mul(Decimal.pow(tmp.ma.milestoneBase,player.ma.points));
         return mult
     },
     gainExp() {
@@ -7048,13 +7213,14 @@ addLayer("ai", {
     },
     row: 6,
     hotkeys: [
-        {key: "R", description: "Shift+R: AI重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "R", description: "按下Shift+R进行AI重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    passiveGeneration() { return 0 },
+    passiveGeneration() { return player.ma.points.gte(27)?1:0 },
     doReset(resettingLayer){ 
         let keep = ["milestones"];
         if (layers[resettingLayer].row > this.row) layerDataReset(this.layer, keep)
     },
+effect() { if(player.ma.points.gte(26))return new Decimal(0.95)},
     layerShown(){return player.r.unlocked && player.id.unlocked },
     branches: ["r", ["id", 3]],
     update(diff) {
@@ -7066,7 +7232,7 @@ addLayer("ai", {
         "resource-display", "blank",
         ["buyable", 11], "blank",
         ["display-text", function() { return "<h3>"+format(player.ai.consc)+"</h3> 人工意识" }], 
-        ["display-text", function() { return "效果: 将能量、信号和机器人获取乘"+format(tmp.ai.conscEff1)+"倍" }],"blank", "blank",
+        ["display-text", function() { return "效果: 将能量、信号和机器人获取乘以"+format(tmp.ai.conscEff1)+"倍" }],"blank", "blank",
         ["clickable", 11],
         "upgrades", "blank", "milestones"
     ],
@@ -7075,26 +7241,27 @@ addLayer("ai", {
         cols: 1,
         11: {
             title: "AI网络",
-            cost(x=player.ai.buyables[11]) {
+            cost(x=player[this.layer].buyables[this.id]) {
                 return Decimal.pow(2, x.pow(1.5)).floor();
             },
-            effect() { return player.ai.buyables[11].mul(player.ai.points.add(1)).mul(Decimal.pow(2,player.ai.buyables[11])); },
+            effect() { return player[this.layer].buyables[this.id].mul(player[this.layer].points.add(1)).mul(Decimal.pow(2,player[this.layer].buyables[this.id])).mul(player.ma.points.gte(27)?Decimal.pow(tmp.ma.milestoneBase,player.ma.points):1); },
             display() {
-                let data = tmp.ai.buyables[11]
-                return formatWhole(player.ai.points)+" / "+formatWhole(data.cost)+" 超级智能\n\n"+
-                "等级: "+formatWhole(player.ai.buyables[11])+"\n\n"+
-                "奖励: 每秒生成"+formatWhole(data.effect)+"人工意识";
+                let data = tmp[this.layer].buyables[this.id];
+                let cost = data.cost;
+                let amt = player[this.layer].buyables[this.id];
+                let display = formatWhole(player.ai.points)+" / "+formatWhole(cost)+" 超级智能<br><br>等级: "+formatWhole(amt)+"<br><br>奖励: 每秒生成"+formatWhole(data.effect)+"人工意识";
+                return display;
             },
-            unlocked() { return player.ai.unlocked }, 
+            unlocked() { return player[this.layer].unlocked }, 
             canAfford() {
-                if (!tmp.ai.buyables[11].unlocked) return false;
-                let cost = layers.ai.buyables[11].cost();
-                return player.ai.unlocked && player.ai.points.gte(cost);
+                if (!tmp[this.layer].buyables[this.id].unlocked) return false;
+                let cost = layers[this.layer].buyables[this.id].cost();
+                return player[this.layer].unlocked && player.ai.points.gte(cost);
             },
             buy() { 
-                let cost = tmp.ai.buyables[11].cost
+                let cost = tmp[this.layer].buyables[this.id].cost;
                 player.ai.points = player.ai.points.sub(cost);
-                player.ai.buyables[11] = player.ai.buyables[11].plus(1);
+                player.ai.buyables[this.id] = player.ai.buyables[this.id].plus(1);
             },
             style: {'height':'200px', 'width':'200px'},
             autoed() { return false },
@@ -7122,6 +7289,13 @@ addLayer("ai", {
             description: "<b>时间逆转</b>和<b>子空间扩展</b>效果更好",
             cost: new Decimal(1e6),
             unlocked() { return player.ai.best.gte(2e4) },
+            style: {height: '150px', width: '150px'},
+        },
+        14: {
+            title: "节点AD",
+            description: "人口更便宜且获得更多启示",
+            cost: new Decimal(1e19),
+            unlocked() { return player.ai.best.gte(1e17) },
             style: {height: '150px', width: '150px'},
         },
         21: {
@@ -7154,6 +7328,16 @@ addLayer("ai", {
             unlocked() { return player.ai.best.gte(2e4) },
             style: {height: '150px', width: '150px'},
         },
+        24: {
+            title: "节点BD",
+            description: "齿轮进化和机器升级更便宜",
+            currencyDisplayName: "人工意识",
+            currencyInternalName: "consc",
+            currencyLayer: "ai",
+            cost: new Decimal(1e30),
+            unlocked() { return player.ai.best.gte(1e17) },
+            style: {height: '150px', width: '150px'},
+        },
         31: {
             title: "节点CA",
             description: "精通里程碑提升信号",
@@ -7169,6 +7353,60 @@ addLayer("ai", {
             style: {height: '150px', width: '150px'},
             effect() { return player.ai.points.plus(1).log10().div(10).add(1); },
             effectDisplay() { return "^"+format(tmp.ai.upgrades[32].effect) },
+        },
+        33: {
+            title: "节点CC",
+            description: "生命助推器3效果更好",
+            cost: new Decimal(2e12),
+            unlocked() { return player.ai.best.gte(2e4) },
+            style: {height: '150px', width: '150px'},
+        },
+        34: {
+            title: "节点CD",
+            description: "助推器和超空间需求为1。人口更便宜",
+            cost: new Decimal(1e23),
+            unlocked() { return player.ai.best.gte(1e17) },
+            style: {height: '150px', width: '150px'},
+        },
+        41: {
+            title: "节点DA",
+            description: "CPU和南桥效果更好",
+            currencyDisplayName: "人工意识",
+            currencyInternalName: "consc",
+            currencyLayer: "ai",
+            cost: new Decimal(1e40),
+            unlocked() { return player.ai.best.gte(1e30) },
+            style: {height: '150px', width: '150px'},
+        },
+        42: {
+            title: "节点DB",
+            description: "超级瓦特和心灵瓦特获取更好，所有能量效果增强",
+            currencyDisplayName: "人工意识",
+            currencyInternalName: "consc",
+            currencyLayer: "ai",
+            cost: new Decimal(1e49),
+            unlocked() { return player.ai.best.gte(1e30) },
+            style: {height: '150px', width: '150px'},
+        },
+        43: {
+            title: "节点DC",
+            description: "第二时间能量效果更好",
+            currencyDisplayName: "人工意识",
+            currencyInternalName: "consc",
+            currencyLayer: "ai",
+            cost: new Decimal(5e50),
+            unlocked() { return player.ai.best.gte(1e30) },
+            style: {height: '150px', width: '150px'},
+        },
+        44: {
+            title: "节点DD",
+            description: "点数软上限开始得更晚",
+            currencyDisplayName: "人工意识",
+            currencyInternalName: "consc",
+            currencyLayer: "ai",
+            cost: new Decimal(1e52),
+            unlocked() { return player.ai.best.gte(1e30) },
+            style: {height: '150px', width: '150px'},
         },
     },
     milestones: {
@@ -7202,5 +7440,259 @@ addLayer("ai", {
             done() { return (player.ai.best.gte(2e4)) },
             effectDescription: "解锁5个AI节点",
         },
-    }
+        6: {
+            requirementDescription: "1e13超级智能",
+            unlocked() {return player.c.unlocked},
+            done() {return player.c.unlocked && (player.ai.best.gte(1e13))},
+            effectDescription: "每点文明能量使超级智能获取提升2倍",
+        },
+        7: {
+            requirementDescription: "1e17超级智能",
+            unlocked() {return player.c.unlocked},
+            done() {return player.c.unlocked && (player.ai.best.gte(1e17))},
+            effectDescription: "解锁3个AI节点",
+        },
+        8: {
+            requirementDescription: "1e25超级智能",
+            unlocked() {return player.c.unlocked},
+            done() {return player.c.unlocked && (player.ai.best.gte(1e25))},
+            effectDescription: "T/S需求为1",
+        },
+        9: {
+            requirementDescription: "1e26超级智能",
+            unlocked() {return player.c.unlocked},
+            done() {return player.c.unlocked && (player.ai.best.gte(1e26))},
+            effectDescription: "生成器需求为1",
+        },
+        10: {
+            requirementDescription: "1e30超级智能",
+            unlocked() {return player.c.unlocked},
+            done() {return player.c.unlocked && (player.ai.best.gte(1e30))},
+            effectDescription: "解锁4个AI节点",
+        },
+    },
+    marked: function(){return player.ma.points.gte(27)}
 });
+addLayer("c", {
+    name: "文明", // 中文名称
+    symbol: "C", // 保持原符号
+    position: 4,
+    startData() { return {
+        unlocked: false,
+        points: new Decimal(0),
+        assigned: [new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0)],
+        gainedPower: [new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0)],
+        first: 0,
+    }},
+    color: "#edb3ff",
+    requires() { if(hasMilestone("c",1))return new Decimal(1);return Decimal.mul(184,Decimal.sub(28.5,player.points).max(0).pow(3)).add(1); },
+    resource: "文明能量", // 中文资源名称
+    baseResource: "帝国砖块", // 中文基础资源名称
+    baseAmount() {return player.i.points},
+    roundUpCost: true,
+    type: "static",
+    exponent: new Decimal(1.2),
+    base: new Decimal(1.025),
+    gainMult() {
+        mult = new Decimal(1)
+        return mult
+    },
+    gainExp() {
+        return new Decimal(1)
+    },
+    canBuyMax() { return false },
+    row: 6,
+    hotkeys: [
+        {key: "C", description: "按下Shift+C进行文明重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    resetsNothing() { return false },
+    doReset(resettingLayer){ 
+        let keep = [];
+        if (layers[resettingLayer].row > this.row) layerDataReset(this.layer, keep)
+    },
+    autoPrestige() { return false },
+    layerShown(){return player.ai.unlocked},
+    branches: [["i", 2], "id"],
+    update(diff) {
+        if (!player.c.unlocked) return;
+        for (let i=0;i<5;i++) player.c.gainedPower[i] = Decimal.pow(2, player.c.gainedPower[i]).pow(3).plus(Decimal.pow(2, player.c.assigned[i]).sub(1).max(0).times(diff/100)).cbrt().log2();
+    },
+    power() {
+        let data = [];
+        for (let i=1;i<=5;i++){
+            data[i] = player.c.points.sub(i).div(5).plus(1).floor().max(0).sqrt().plus(player.c.gainedPower[i-1]);
+            if(hasMilestone("c",2))data[i] = player.c.points.max(0).sqrt().plus(player.c.gainedPower[i-1]);
+            if(hasMilestone("c",3))data[i] = player.c.points.max(0).pow(0.72).plus(player.c.gainedPower[i-1]);
+        }
+        return data;
+    },
+    totalAssigned() { return player.c.assigned.reduce((a,c) => Decimal.add(a, c)) },
+    minAssigned() { return player.c.assigned.reduce((a,c) => Decimal.min(a, c)) },
+    eff1() { return tmp.c.power[1].times(50) },
+    eff2() { return Decimal.pow(1e20, tmp.c.power[2]) },
+    eff3() { return Decimal.pow(1e15, tmp.c.power[3]) },
+    eff4() { return Decimal.pow(1e5, tmp.c.power[4]) },
+    eff5() { return tmp.c.power[5].plus(1).log(4).plus(1) },
+    tabFormat: ["main-display",
+        "prestige-button",
+        "resource-display", "blank",
+        ["row", [
+            ["column", [
+                ["display-text", "<h3>文明<sub>1</sub></h3>"],
+                ["display-text", function() { return (player.c.assigned[0].gt(0)?("人口: "+formatWhole(player.c.assigned[0])+"<br>"):"")+"能量: "+format(tmp.c.power[1].times(100))+"%" }], "blank",
+                ["display-text", function() { return "效果: 减少点数缩放并使点数软上限出现得更晚" }],
+                "blank", ["clickable", 11],
+            ], function() { return {width: "9em", visibility: player.c.points.gte(1)?"visible":"hidden"}}],
+            ["tall-display-text", "<div class='vl2'></div>", function() { return {height: "223.667px", visibility: player.c.points.gte(2)?"visible":"hidden"}}],
+            ["column", [
+                ["display-text", "<h3>文明<sub>2</sub></h3>"],
+                ["display-text", function() { return (player.c.assigned[1].gt(0)?("人口: "+formatWhole(player.c.assigned[1])+"<br>"):"")+"能量: "+format(tmp.c.power[2].times(100))+"%" }], "blank",
+                ["display-text", function() { return "效果: 将思想需求除以"+format(tmp.c.eff2) }],
+                "blank", ["clickable", 12],
+            ], function() { return {width: "9em", visibility: player.c.points.gte(2)?"visible":"hidden"}}],
+            ["tall-display-text", "<div class='vl2'></div>", function() { return {height: "223.667px", visibility: player.c.points.gte(3)?"visible":"hidden"}}],
+            ["column", [
+                ["display-text", "<h3>文明<sub>3</sub></h3>"],
+                ["display-text", function() { return (player.c.assigned[2].gt(0)?("人口: "+formatWhole(player.c.assigned[2])+"<br>"):"")+"能量: "+format(tmp.c.power[3].times(100))+"%" }], "blank",
+                ["display-text", function() { return "效果: 将信号获取乘以"+format(tmp.c.eff3) }],
+                "blank", ["clickable", 13],
+            ], function() { return {width: "9em", visibility: player.c.points.gte(3)?"visible":"hidden"}}],
+            ["tall-display-text", "<div class='vl2'></div>", function() { return {height: "223.667px", visibility: player.c.points.gte(4)?"visible":"hidden"}}],
+            ["column", [
+                ["display-text", "<h3>文明<sub>4</sub></h3>"],
+                ["display-text", function() { return (player.c.assigned[3].gt(0)?("人口: "+formatWhole(player.c.assigned[3])+"<br>"):"")+"能量: "+format(tmp.c.power[4].times(100))+"%" }], "blank",
+                ["display-text", function() { return "效果: 将旋转次数和机械能量获取乘以"+format(tmp.c.eff4) }],
+                "blank", ["clickable", 14],
+            ], function() { return {width: "9em", visibility: player.c.points.gte(4)?"visible":"hidden"}}],
+            ["tall-display-text", "<div class='vl2'></div>", function() { return {height: "223.667px", visibility: player.c.points.gte(5)?"visible":"hidden"}}],
+            ["column", [
+                ["display-text", "<h3>文明<sub>5</sub></h3>"],
+                ["display-text", function() { return (player.c.assigned[4].gt(0)?("人口: "+formatWhole(player.c.assigned[4])+"<br>"):"")+"能量: "+format(tmp.c.power[5].times(100))+"%" }], "blank",
+                ["display-text", function() { return "效果: 神经网络增强"+format(tmp.c.eff5.sub(1).times(100))+"%" }],
+                "blank", ["clickable", 15],
+            ], function() { return {width: "9em", visibility: player.c.points.gte(5)?"visible":"hidden"}}],
+        ], function() { return {visibility: player.c.unlocked?"visible":"hidden"} }], "blank", "blank",
+        "buyables","milestones"
+    ],
+    buyables: {
+        showRespec() { return player.c.points.gte(6) },
+        respec() {
+            player[this.layer].points = player[this.layer].points.add(player[this.layer].spentOnBuyables);
+            player.c.assigned = [new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0)];
+            player.c.gainedPower = [new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0)];
+            doReset(this.layer, true);
+        },
+        respecText: "重置人口",
+        rows: 1,
+        cols: 1,
+        11: {
+            title: "人口",
+            cost(x=player[this.layer].buyables[this.id]) {
+                if(hasMilestone("c",0)){
+                    return Decimal.pow(1.5, x.pow(1.1)).div(Decimal.pow(hasMilestone("c",1)?9:3,player.c.points));
+                }
+                return Decimal.pow(1.5, x.pow(1.1)).times(hasUpgrade("ai",34)?1:hasUpgrade("ai",14)?1e8:1e11).round();
+            },
+            cap() { 
+                let cap = player.c.points.sub(5).max(0).mul(5);
+                return cap;
+            },
+            display() {
+                let data = tmp[this.layer].buyables[this.id];
+                let cost = data.cost;
+                let amt = player[this.layer].buyables[this.id];
+                let display = formatWhole(player.ai.points)+" / "+formatWhole(cost)+" 超级智能<br><br>人口: "+formatWhole(amt)+" / "+formatWhole(data.cap);
+                return display;
+            },
+            unlocked() { return player.c.points.gte(6) }, 
+            canAfford() {
+                if (!tmp[this.layer].buyables[this.id].unlocked) return false;
+                let cost = layers[this.layer].buyables[this.id].cost();
+                return player[this.layer].unlocked && player.ai.points.gte(cost) && player.c.buyables[this.id].lt(tmp[this.layer].buyables[this.id].cap);
+            },
+            buy() { 
+                let cost = tmp[this.layer].buyables[this.id].cost;
+                player.ai.points = player.ai.points.sub(cost);
+                player.c.buyables[this.id] = player.c.buyables[this.id].plus(1);
+            },
+            style: {'height':'140px', 'width':'140px'},
+            autoed() { return false },
+        },
+    },
+    clickables: {
+        rows: 1,
+        cols: 5,
+        11: {
+            title: "+1 人口",
+            display: "",
+            unlocked() { return player.c.unlocked && player.c.points.gte(6) },
+            canClick() { return player.c.unlocked && player.c.points.gte(6) && layers.c.totalAssigned().lt(player.c.buyables[11]) && layers.c.minAssigned().eq(player.c.assigned[0]) },
+            onClick() { 
+                player.c.assigned[0] = player.c.assigned[0].plus(1);
+            },
+            style: {width: "120px", height: "50px", "border-radius": "0px"},
+        },
+        12: {
+            title: "+1 人口",
+            display: "",
+            unlocked() { return player.c.unlocked && player.c.points.gte(6) },
+            canClick() { return player.c.unlocked && player.c.points.gte(6) && layers.c.totalAssigned().lt(player.c.buyables[11]) && layers.c.minAssigned().eq(player.c.assigned[1]) },
+            onClick() { 
+                player.c.assigned[1] = player.c.assigned[1].plus(1);
+            },
+            style: {width: "120px", height: "50px", "border-radius": "0px"},
+        },
+        13: {
+            title: "+1 人口",
+            display: "",
+            unlocked() { return player.c.unlocked && player.c.points.gte(6) },
+            canClick() { return player.c.unlocked && player.c.points.gte(6) && layers.c.totalAssigned().lt(player.c.buyables[11]) && layers.c.minAssigned().eq(player.c.assigned[2]) },
+            onClick() { 
+                player.c.assigned[2] = player.c.assigned[2].plus(1);
+            },
+            style: {width: "120px", height: "50px", "border-radius": "0px"},
+        },
+        14: {
+            title: "+1 人口",
+            display: "",
+            unlocked() { return player.c.unlocked && player.c.points.gte(6) },
+            canClick() { return player.c.unlocked && player.c.points.gte(6) && layers.c.totalAssigned().lt(player.c.buyables[11]) && layers.c.minAssigned().eq(player.c.assigned[3]) },
+            onClick() { 
+                player.c.assigned[3] = player.c.assigned[3].plus(1);
+            },
+            style: {width: "120px", height: "50px", "border-radius": "0px"},
+        },
+        15: {
+            title: "+1 人口",
+            display: "",
+            unlocked() { return player.c.unlocked && player.c.points.gte(6) },
+            canClick() { return player.c.unlocked && player.c.points.gte(6) && layers.c.totalAssigned().lt(player.c.buyables[11]) && layers.c.minAssigned().eq(player.c.assigned[4]) },
+            onClick() { 
+                player.c.assigned[4] = player.c.assigned[4].plus(1);
+            },
+            style: {width: "120px", height: "50px", "border-radius": "0px"},
+        },
+    },
+    milestones: {
+        0: {
+            requirementDescription: "32 文明能量",
+            done() { return (player.c.best.gte(32)) },
+            effectDescription: "第1-6行所有层需求为1。超级智能需求为1。提升器更便宜。每点文明能量将人口成本除以3。",
+        },
+        1: {
+            requirementDescription: "40 文明能量",
+            done() { return (player.c.best.gte(40)) },
+            effectDescription: "除Mastery外，第7行所有层需求为1。每点文明能量将人口成本除以3。",
+        },
+        2: {
+            requirementDescription: "65 文明能量",
+            done() { return (player.c.best.gte(65)) },
+            effectDescription: "文明能量效果增强。",
+        },
+        3: {
+            requirementDescription: "67 文明能量",
+            done() { return (player.c.best.gte(67)) },
+            effectDescription: "文明能量效果增强。",
+        },
+    },
+})
