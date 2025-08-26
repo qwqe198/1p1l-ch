@@ -135,6 +135,7 @@ function getRealPointGenBeforeTaxes() {
 	if (player.q.unlocked) gain = gain.mul(tmp.q.enEff);
 	if (player.h.unlocked) gain = gain.mul(layers.h.effect());
     if(hasUpgrade("ss",43))gain = gain.pow(1.01);
+if(hasMilestone("c",0))gain = gain.pow(1.1);//不知道哪里少了，补个加成
 	return gain
 }
 
@@ -173,7 +174,8 @@ function addedPlayerData() { return {
 var displayThings = [
     "模组作者: loader3229 汉化:22222",
     "终局: "+VERSION.num+"点",
-    function(){return "点数增益: "+format(getRealPointGen())+"倍"},
+function(){if(getRealPointGen().gte(Decimal.pow(2,Decimal.pow(2,29.1))))return "点数增益: "+format(getRealPointGen())+"倍 ("+format(getRealPointGenBeforeTaxes())+"倍)"; return "点数增益: "+format(getRealPointGen())+"倍"},
+    
     function(){return "进度: "+format(player.points.mul(100).div(VERSION.num))+"%"},
 function(){
     if(getRealPointGen().gte(Decimal.pow(2,Decimal.pow(2,29.1)))) {
