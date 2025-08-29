@@ -3183,7 +3183,7 @@ if(hasMilestone("c",0))return new Decimal(1);
         "milestones",
         "blank",
         ["display-text",
-            function() { return "<b>太阳能量: "+format(tmp.o.solPow.times(100))+"%</b><br>" },
+            function() { return "<b>太阳力量: "+format(tmp.o.solPow.times(100))+"%</b><br>" },
                 {}],
         "buyables",
         "blank"
