@@ -6156,16 +6156,9 @@ addLayer("ge", {
     hexEffDesc() {
         return "将阻碍精神、特质、太阳能量和子空间获取乘以" + format(tmp.ge.hexEff) + "倍";
     },
-	 update(diff){
-         if(player.ma.points.gte(22))player.mc.mechEn = player.mc.mechEn.add(tmp.mc.effect.mul(diff));
-		 else player.mc.mechEn = tmp.mc.effect.times(100).sub(tmp.mc.effect.times(100).sub(player.mc.mechEn).mul(Decimal.pow(0.99,diff)));
-         if(hasMilestone("mc",10)){
-             player.mc.buyables[21]=player.mc.buyables[21].add(player.mc.mechEn.mul(diff));
-             player.mc.buyables[22]=player.mc.buyables[22].add(player.mc.mechEn.mul(diff));
-             player.mc.buyables[31]=player.mc.buyables[31].add(player.mc.mechEn.mul(diff));
-             player.mc.buyables[32]=player.mc.buyables[32].add(player.mc.mechEn.mul(diff));
-         }
-	 },
+	 update(diff) {
+        player.ge.rotations = player.ge.rotations.add(tmp.ge.effect.times(diff)).max(0)
+    },
     passiveGeneration() { return (hasMilestone("sp",3)?1:0) },
     marked: function(){ return player.ma.points.gte(21) }
 });
@@ -8447,4 +8440,5 @@ addLayer("si", {
                hasMilestone("si",16) ? 1 : 0; 
     },
     marked: function(){ return player.ma.points.gte(29) }
+
 });
